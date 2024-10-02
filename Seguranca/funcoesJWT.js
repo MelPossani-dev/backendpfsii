@@ -1,12 +1,14 @@
 import jwt from 'jsonwebtoken';
+
 export function assinar(usuario){
-    //
-    const token = jwt.sign({usuario}, process.env.CHAVE_SECRETA, {
-        expiresIn: '1800s'});
-    
+    const token = jwt.sign({usuario}, process.env.CHAVE_SECRETA, 
+        {expiresIn: '1d'});
+
     return token;
+
 }
 
 export function verificarAssinatura(token){
     return jwt.verify(token, process.env.CHAVE_SECRETA);
+
 }

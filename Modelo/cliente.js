@@ -1,133 +1,132 @@
-import ClienteDAO from '../Persistencia/ClienteDAO.js';
+import ClienteDAO from "../Persistencia/clienteDAO.js";
 
-export default class Cliente{
+export default class Cliente {
+    #cli_codigo;
+    #cli_nome;
+    #cli_telefone;
+    #cli_endereco;
+    #cli_cpf;
 
-    #cpf;  //# define que um atributo seja privado
-    #nome;
-    #endereco;
-    #bairro;
-    #cidade;
-    #uf;
-    #telefone;
-    #email;
-
-    //método construtor que define as informações necessárias para se criar um cliente
-    constructor(cpf, nome, endereco, bairro, cidade, uf, telefone, email){
-        this.#cpf = cpf;
-        this.#nome = nome;
-        this.#endereco = endereco;
-        this.#bairro = bairro;
-        this.#cidade = cidade;
-        this.#uf = uf;
-        this.#telefone = telefone;
-        this.#email = email;
-        
+    constructor(codigo = null, nome, telefone, endereco, cpf) {
+        this.#cli_codigo = codigo;
+        this.#cli_nome = nome;
+        this.#cli_telefone = telefone;
+        this.#cli_endereco = endereco;
+        this.#cli_cpf = cpf;
     }
 
+    // Métodos de acesso (get) e modificação (set)
 
-    get cpf(){
-        return this.#cpf;
-    }
-
-    set cpf(novoCpf){
-        this.#cpf = novoCpf;
+    // Código
+    get cli_codigo() {
+        return this.#cli_codigo;
     }
 
-    get nome(){
-        return this.#nome;
+    set cli_codigo(novoCodigo) {
+        if (novoCodigo === null || typeof novoCodigo !== "number") {
+            throw new Error("Formato de dado inválido para código.");
+        }
+        this.#cli_codigo = novoCodigo;
     }
 
-    set nome(novoNome){
-        if(novoNome != "") //regra de negócio que impede que clientes existam com nomes vazios
-            this.#nome = novoNome;
+    // Nome
+    get cli_nome() {
+        return this.#cli_nome;
     }
 
-    get endereco() {
-        return this.#endereco;
+    set cli_nome(novoNome) {
+        if (!novoNome || novoNome.trim() === "") {
+            throw new Error("Nome não pode ser vazio.");
+        }
+        this.#cli_nome = novoNome;
     }
 
-    set endereco(novoEnd){
-        this.#endereco = novoEnd;
+    // Telefone
+    get cli_telefone() {
+        return this.#cli_telefone;
     }
 
-    get bairro(){
-        return this.#bairro;    
-    }
-    
-    set bairro(novoBairro){
-        this.#bairro = novoBairro;
-    }
-
-    get cidade(){
-        return this.#cidade;
+    set cli_telefone(novoTelefone) {
+        if (!novoTelefone || novoTelefone.length !== 14) {
+            throw new Error("Formato de telefone inválido. Exemplo: (XX) XXXXX-XXXX");
+        }
+        this.#cli_telefone = novoTelefone;
     }
 
-    set cidade(novaCidade){
-        this.#cidade = novaCidade;
+    // Endereço
+    get cli_endereco() {
+        return this.#cli_endereco;
     }
 
-    get uf(){
-        return this.#uf;
-    }
-    
-    set uf(novaUf){
-        this.#uf=novaUf;
-    }
-
-    get telefone(){
-        return this.#telefone;
+    set cli_endereco(novoEndereco) {
+        if (!novoEndereco || novoEndereco.trim() === "") {
+            throw new Error("Endereço não pode ser vazio.");
+        }
+        this.#cli_endereco = novoEndereco;
     }
 
-    set telefone(novoTel){
-        this.#telefone = novoTel;
+    // CPF
+    get cli_cpf() {
+        return this.#cli_cpf;
     }
 
-    get email(){
-        return this.#email;
+    set cli_cpf(novoCpf) {
+        if (!novoCpf || novoCpf.length !== 11 || isNaN(novoCpf)) {
+            throw new Error("CPF deve ter 11 dígitos numéricos.");
+        }
+        this.#cli_cpf = novoCpf;
     }
 
-    set email(novoEmail){
-        this.#email = novoEmail;
-    }
-    
-    //override ou sobrescrita do método toJSON
-    toJSON(){
+    // JSON
+    toJSON() {
         return {
-            "cpf"      : this.#cpf,
-            "nome"     : this.#nome,
-            "endereco" : this.#endereco,
-            "bairro"   : this.#bairro,
-            "cidade"   : this.#cidade,
-            "uf"       : this.#uf,
-            "telefone" : this.#telefone,
-            "email"    : this.#email
+            cli_codigo: this.#cli_codigo,
+            cli_nome: this.#cli_nome,
+            cli_telefone: this.#cli_telefone,
+            cli_endereco: this.#cli_endereco,
+            cli_cpf: this.#cli_cpf
+        };
+    }
+
+    async gravar() {
+        const clienteDAO = new ClienteDAO();
+        try {
+            const codigoGravado = await clienteDAO.gravar(this);
+            this.cli_codigo = codigoGravado; // Atualiza o código após a gravação
+        } catch (erro) {
+            console.error("Erro ao gravar cliente:", erro.message);
+            throw erro;  
         }
     }
 
-    async gravar(){
-        const clienteDAO = new ClienteDAO();
-        await clienteDAO.incluir(this);
-    }
-
     async atualizar() {
-        const clienteBD = new ClienteDAO();
-        await clienteBD.alterar(this);
+        const clienteDAO = new ClienteDAO();
+        try {
+            await clienteDAO.atualizar(this);
+        } catch (erro) {
+            console.error("Erro ao atualizar cliente:", erro.message);
+            throw erro;  
+        }
     }
 
-    async removerDoBancoDados() {
-        const clienteBD = new ClienteDAO();
-        await clienteBD.excluir(this);
+    async excluir() {
+        const clienteDAO = new ClienteDAO();
+        try {
+            await clienteDAO.excluir(this);
+        } catch (erro) {
+            console.error("Erro ao excluir cliente:", erro.message);
+            throw erro; 
+        }
     }
 
-    async consultar(termo){
-        const clienteBD = new ClienteDAO();
-        const clientes = await clienteBD.consultar(termo);
-        return clientes;
-    }
-
-    async consultarCPF(cpf){
-        const clienteBD = new ClienteDAO();
-        const clientes = await clienteBD.consultarCPF(cpf);
-        return clientes;
+    async consultar(termo) {
+        const clienteDAO = new ClienteDAO();
+        try {
+            const listaClientes = await clienteDAO.consultar(termo);
+            return listaClientes;
+        } catch (erro) {
+            console.error("Erro ao consultar clientes:", erro.message);
+            throw erro;  
+        }
     }
 }

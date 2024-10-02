@@ -8,8 +8,6 @@ rotaPedido
 .get('/', pedidoCtrl.consultar)
 .get('/:termo', pedidoCtrl.consultar)
 .post('/', pedidoCtrl.gravar);
-//.patch('/', pedidoCtrl.atualizar)
-//.put('/', pedidoCtrl.atualizar)
-//.delete('/', pedidoCtrl.excluir);
 
 export default rotaPedido;
+

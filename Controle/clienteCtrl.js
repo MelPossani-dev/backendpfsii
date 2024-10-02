@@ -1,206 +1,135 @@
-import Cliente from '../Modelo/cliente.js';
+import Cliente from "../Modelo/Cliente.js";
 
-//esta classe irá manipular/controlar a entidade Cliente
-export default class ClienteCTRL{
-
-    //método responsável por gravar os dados de um cliente
-    //das requisições (POST) vindas da internet por meio do protocolo http
-    //recupera os dados de um cliente (JSON) vindos da requisição
-    //Vamos combinar que as respostas estão no formato JSON
-    gravar(requisicao, resposta){
-        resposta.type("application/json");
-        
-        if(requisicao.method === "POST" && requisicao.is('application/json')){
+export default class ClienteCtrl {
+    gravar(requisicao, resposta) {
+        resposta.type('application/json');
+        if (requisicao.method === 'POST' && requisicao.is('application/json')) {
             const dados = requisicao.body;
-            const cpf = dados.cpf;
-            const nome = dados.nome;
-            const endereco = dados.endereco;
-            const bairro = dados.bairro;
-            const cidade = dados.cidade;
-            const uf = dados.uf;
-            const telefone = dados.telefone;
-            const email = dados.email;
-            if(cpf && nome && endereco && bairro && cidade && uf && telefone && email)
-            {
-                //gravar esse cliente
-                const cliente = new Cliente(cpf, nome, endereco, bairro, cidade,
-                                            uf,telefone,email);
-                //método assíncrono gravar que instancia a camada de persistência e
-                //grava um cliente no banco de dados
-                cliente.gravar().then(()=>{
-                    resposta.status(200).json({
-                        status:true,
-                        mensagem:"Cliente gravado com sucesso!"
-                    });
-                }).catch((erro) => {
-                    resposta.status(500).json({
-                        status:false,
-                        mensagem: erro.message
-                    })
-                });                                   
-            }
-            else
-            {
-               resposta.status(400).json({
-                    status:false,
-                    mensagem:"Informe adequadamente todos os dados de um cliente conforme documentação da API!"
-               });     
-            }
-        }
-        else{
-            //código 400 o erro é do usuário que fez a requisição
-            resposta.status(400).json({
-                status:false,
-                mensagem:"Método não permitido ou cliente no formato JSON não fornecido! Consulte a documentação da API"
-            });
-        }
-    }
+            const nome = dados.cli_nome;
+            const telefone = dados.cli_telefone;
+            const endereco = dados.cli_endereco;
+            const cpf = dados.cli_cpf;
 
-    //requisição HTTP do tipo PUT
-    atualizar(requisicao, resposta){
-        resposta.type("application/json");
-        
-        if(requisicao.method === "PUT" && requisicao.is('application/json')){
-            const dados = requisicao.body;
-            const cpf = dados.cpf;
-            const nome = dados.nome;
-            const endereco = dados.endereco;
-            const bairro = dados.bairro;
-            const cidade = dados.cidade;
-            const uf = dados.uf;
-            const telefone = dados.telefone;
-            const email = dados.email;
-            if(cpf && nome && endereco && bairro && cidade && uf && telefone && email)
-            {
-                //gravar esse cliente
-                const cliente = new Cliente(cpf, nome, endereco, bairro, cidade,
-                                            uf,telefone,email);
-                //método assíncrono gravar que instancia a camada de persistência e
-                //grava um cliente no banco de dados
-                cliente.atualizar().then(()=>{
+            if (nome && telefone && endereco && cpf) {
+                const cliente = new Cliente(0, nome, telefone, endereco, cpf);
+                cliente.gravar().then(() => {
                     resposta.status(200).json({
-                        status:true,
-                        mensagem:"Cliente atualizado com sucesso!"
+                        "status": true,
+                        "codigoGerado": cliente.cli_codigo, // Correção feita
+                        "mensagem": "Cliente incluído com sucesso!"
                     });
-                }).catch((erro) => {
-                    resposta.status(500).json({
-                        status:false,
-                        mensagem: erro.message
-                    })
-                });                                   
-            }
-            else
-            {
-               resposta.status(400).json({
-                    status:false,
-                    mensagem:"Informe adequadamente todos os dados de um cliente conforme documentação da API!"
-               });     
-            }
-        }
-        else{
-            //código 400 o erro é do usuário que fez a requisição
-            resposta.status(400).json({
-                status:false,
-                mensagem:"Método não permitido ou cliente no formato JSON não fornecido! Consulte a documentação da API"
-            });
-        }
-    }
-
-    excluir(requisicao, resposta){
-        resposta.type("application/json");
-        
-        if(requisicao.method === "DELETE" && requisicao.is('application/json')){
-            const dados = requisicao.body;
-            const cpf = dados.cpf;
-            if(cpf)
-            {
-                //gravar esse cliente
-                const cliente = new Cliente(cpf);
-                //método assíncrono removerDoBanco que instancia a camada de persistência e
-                //grava um cliente no banco de dados
-                cliente.removerDoBancoDados().then(()=>{
-                    resposta.status(200).json({
-                        status:true,
-                        mensagem:"Cliente excluído com sucesso!"
-                    });
-                }).catch((erro) => {
-                    resposta.status(500).json({
-                        status:false,
-                        mensagem: erro.message
-                    })
-                });                                   
-            }
-            else
-            {
-               resposta.status(400).json({
-                    status:false,
-                    mensagem:"Informe cpf do cliente conforme documentação da API!"
-               });     
-            }
-        }
-        else{
-            //código 400 o erro é do usuário que fez a requisição
-            resposta.status(400).json({
-                status:false,
-                mensagem:"Método não permitido ou cliente no formato JSON não fornecido! Consulte a documentação da API"
-            });
-        }
-    }
-
-    consultar(requisicao, resposta){
-        resposta.type("application/json");
-        
-        if(requisicao.method === "GET"){
-            const cliente = new Cliente();
-            //método assíncrono que recupera os clientes do banco dados
-            cliente.consultar('').then((clientes)=>{
-                    resposta.status(200).json({
-                        status:true,
-                        listaClientes:clientes
-                    });
-            }).catch((erro) => {
-                resposta.status(500).json({
-                    status:false,
-                    mensagem: erro.message
                 })
-            });                                   
-        }
-        else{
-            //código 400 o erro é do usuário que fez a requisição
+                .catch((erro) => {
+                    resposta.status(500).json({
+                        "status": false,
+                        "mensagem": "Erro ao registrar o cliente: " + erro.message
+                    });
+                });
+            } else {
+                resposta.status(400).json({
+                    "status": false,
+                    "mensagem": "Por favor, insira todos os dados do cliente segundo a documentação da API!"
+                });
+            }
+        } else {
             resposta.status(400).json({
-                status:false,
-                mensagem:"Método não permitido! Consulte a documentação da API"
+                "status": false,
+                "mensagem": "Por favor, utilize o método POST para cadastrar um cliente!"
             });
         }
     }
 
-    //alguém poderá fazer a seguinte requisição:
-    //GET http://localhost:3000/clientes/111.111.111-11
-    consultarPeloCPF(requisicao, resposta){
-        resposta.type("application/json");
-        
-        const cpf = requisicao.params['cpf'];
-        
-        if(requisicao.method === "GET"){
-            const cliente = new Cliente();
-            //método assíncrono que recupera os clientes do banco dados
-            cliente.consultarCPF(cpf).then((cliente)=>{
+    atualizar(requisicao, resposta) {
+        resposta.type('application/json');
+        if ((requisicao.method === 'PUT' || requisicao.method === 'PATCH') && requisicao.is('application/json')) {
+            const dados = requisicao.body;
+            const codigo = dados.cli_codigo;
+            const nome = dados.cli_nome;
+            const telefone = dados.cli_telefone;
+            const endereco = dados.cli_endereco;
+            const cpf = dados.cli_cpf;
+            if (codigo && nome && telefone && endereco && cpf) {
+                const cliente = new Cliente(codigo, nome, telefone, endereco, cpf);
+                cliente.atualizar().then(() => {
                     resposta.status(200).json({
-                        status:true,
-                        listaClientes:cliente
+                        "status": true,
+                        "mensagem": "Cliente atualizado com sucesso!"
                     });
-            }).catch((erro) => {
-                resposta.status(500).json({
-                    status:false,
-                    mensagem: erro.message
                 })
-            });                                   
-        }
-        else{
-            //código 400 o erro é do usuário que fez a requisição
+                .catch((erro) => {
+                    resposta.status(500).json({
+                        "status": false,
+                        "mensagem": "Erro ao atualizar o cliente: " + erro.message
+                    });
+                });
+            } else {
+                resposta.status(400).json({
+                    "status": false,
+                    "mensagem": "Por favor, informe todos os dados do cliente segundo a documentação da API!"
+                });
+            }
+        } else {
             resposta.status(400).json({
-                status:false,
-                mensagem:"Método não permitido! Consulte a documentação da API"
+                "status": false,
+                "mensagem": "Por favor, utilize os métodos PUT ou PATCH para atualizar um cliente!"
+            });
+        }
+    }
+
+    excluir(requisicao, resposta) {
+        resposta.type('application/json');
+        if (requisicao.method === 'DELETE' && requisicao.is('application/json')) {
+            const dados = requisicao.body;
+            const codigo = dados.cli_codigo;
+            if (codigo) {
+                const cliente = new Cliente(codigo);
+                cliente.excluir().then(() => {
+                    resposta.status(200).json({
+                        "status": true,
+                        "mensagem": "Cliente excluído com sucesso!"
+                    });
+                })
+                .catch((erro) => {
+                    resposta.status(500).json({
+                        "status": false,
+                        "mensagem": "Erro ao excluir o cliente: " + erro.message
+                    });
+                });
+            } else {
+                resposta.status(400).json({
+                    "status": false,
+                    "mensagem": "Por favor, informe o código do cliente!"
+                });
+            }
+        } else {
+            resposta.status(400).json({
+                "status": false,
+                "mensagem": "Por favor, utilize o método DELETE para excluir um cliente!"
+            });
+        }
+    }
+
+    consultar(requisicao, resposta) {
+        resposta.type('application/json');
+        let termo = requisicao.params.termo || ""; // Simplificação
+        if (requisicao.method === "GET") {
+            const cliente = new Cliente();
+            cliente.consultar(termo).then((listaClientes) => {
+                resposta.json({
+                    status: true,
+                    listaClientes
+                });
+            })
+            .catch((erro) => {
+                resposta.json({
+                    status: false,
+                    mensagem: "Não foi possível obter os clientes: " + erro.message
+                });
+            });
+        } else {
+            resposta.status(400).json({
+                "status": false,
+                "mensagem": "Por favor, utilize o método GET para consultar clientes!"
             });
         }
     }

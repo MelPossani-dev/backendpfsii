@@ -1,17 +1,20 @@
 import PedidoDAO from "../Persistencia/pedidoDAO.js";
+
 export default class Pedido {
     #codigo;
     #cliente;
     #data;
     #total;
     #itens;
+    #pedidoDAO;
 
-    constructor(codigo, cliente, data,  total, itens) {
-        this.#codigo = codigo;
-        this.#cliente = cliente;
-        this.#data = data;
-        this.#total = total;
-        this.#itens = itens;
+    constructor(codigo = null, cliente, data = new Date(), total = 0.00, itens = []) {
+        this.#pedidoDAO = new PedidoDAO();
+        this.codigo = codigo; 
+        this.cliente = cliente; 
+        this.data = data; 
+        this.total = total; 
+        this.itens = itens; 
     }
 
     // Métodos de acesso (get) e modificação (set)
@@ -22,11 +25,10 @@ export default class Pedido {
     }
 
     set codigo(novoCodigo) {
-        if (novoCodigo === "" || typeof novoCodigo !== "number") {
-            console.log("Formato de dado inválido");
-        } else {
-            this.#codigo = novoCodigo;
+        if (typeof novoCodigo !== "number" || novoCodigo <= 0) {
+            throw new Error("Formato de dado inválido: o código deve ser um número positivo.");
         }
+        this.#codigo = novoCodigo;
     }
 
     // Código do Cliente
@@ -34,9 +36,11 @@ export default class Pedido {
         return this.#cliente;
     }
 
-    set cliente(novocliente) {
-        this.#cliente = novocliente;
-        
+    set cliente(novoCliente) {
+        if (!novoCliente || typeof novoCliente.cli_codigo !== "number") {
+            throw new Error("Cliente inválido: deve ser um objeto com um código de cliente.");
+        }
+        this.#cliente = novoCliente;
     }
 
     // Data
@@ -45,6 +49,9 @@ export default class Pedido {
     }
 
     set data(novaData) {
+        if (!(novaData instanceof Date)) {
+            throw new Error("Data inválida: deve ser um objeto Date.");
+        }
         this.#data = novaData;
     }
 
@@ -54,48 +61,83 @@ export default class Pedido {
     }
 
     set total(novoTotal) {
+        if (typeof novoTotal !== "number" || novoTotal < 0) {
+            throw new Error("Total inválido: deve ser um número não negativo.");
+        }
         this.#total = novoTotal;
     }
 
-    // Produtos
+    // Itens
     get itens() {
         return this.#itens;
     }
 
-    set produtos(novosItens) {
-        this.#itens = novosItens;
+    set itens(novosItens) {
+        if (!Array.isArray(novosItens) || novosItens.length === 0) {
+            throw new Error("Itens inválidos: deve ser um array não vazio.");
+        }
+        this.#itens = novosItens.map(item => {
+            if (!item.maquina || !item.quantidade || typeof item.precoUnitario !== "number") {
+                throw new Error("Item inválido: deve conter máquina, quantidade e preço unitário.");
+            }
+            return item;
+        });
     }
+
     // JSON
     toJSON() {
         return {
-            'codigo': this.#codigo,
-            'cliente': this.#cliente,
-            'data': this.#data,
-            'total': this.#total,
-            'produtos': this.#itens
-
+            codigo: this.#codigo,
+            cliente: {
+                codigo: this.#cliente.cli_codigo,
+                nome: this.#cliente.cli_nome,
+                telefone: this.#cliente.cli_telefone,
+                endereco: this.#cliente.cli_endereco,
+                cpf: this.#cliente.cli_cpf,
+            },
+            data: this.#data.toISOString(),
+            total: this.#total,
+            itens: this.#itens.map(item => ({
+                maquina: item.maquina.maq_codigo,
+                quantidade: item.quantidade,
+                precoUnitario: item.precoUnitario,
+            })),
         };
     }
 
     async gravar() {
-        const pedidoDAO = new PedidoDAO();
-        this.codigo = await pedidoDAO.gravar(this);
+        try {
+            this.codigo = await this.#pedidoDAO.gravar(this);
+        } catch (erro) {
+            console.error("Erro ao gravar pedido:", erro.message);
+            throw erro;  
+        }
     }
 
     async atualizar() {
-        const pedidoDAO = new PedidoDAO();
-        await pedidoDAO.alterar(this);
+        try {
+            await this.#pedidoDAO.atualizar(this);
+        } catch (erro) {
+            console.error("Erro ao atualizar pedido:", erro.message);
+            throw erro;  
+        }
     }
 
-    async apagar() {
-        const pedidoDAO = new PedidoDAO();
-        await pedidoDAO.deletar(this);
+    async excluir() {
+        try {
+            await this.#pedidoDAO.excluir(this);
+        } catch (erro) {
+            console.error("Erro ao excluir pedido:", erro.message);
+            throw erro; 
+        }
     }
 
     async consultar(termoBusca) {
-        const pedidoDAO = new PedidoDAO();
-        const listaPedidos = await pedidoDAO.consultar(termoBusca);
-        return listaPedidos;
+        try {
+            return await this.#pedidoDAO.consultar(termoBusca);
+        } catch (erro) {
+            console.error("Erro ao consultar pedidos:", erro.message);
+            throw erro;  
+        }
     }
-    
 }
